@@ -2,13 +2,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
-    <com.lxb.bjhlb.utils.utils.X5WebView
+    <com.lxb.bjhlb.utils.X5WebView
         android:layout_height="fill_parent"
         android:layout_width="fill_parent"
         android:id="@+id/full_web_webview"
-        android:scrollbars="horizontal"
-        ></com.lxb.bjhlb.utils.utils.X5WebView>
-    
-    	
-
+        android:scrollbars="horizontal"/>
 </RelativeLayout>

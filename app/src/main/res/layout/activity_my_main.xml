@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/root_content"
-    tools:context="com.lxb.bjhlb.TestMainActivity">
+    tools:context="com.lxb.bjhlb.MyMainActivity">
 
     <WebView
         android:id="@+id/login_wv"
