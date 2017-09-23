@@ -1,22 +1,83 @@
 <!DOCTYPE html>
+<html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.4.0&key=071f8a58b450a9d08a80c897b9b9c076"></script>
+    <script type="text/javascript" src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <body>
+<div id="container"></div>
+
+
 <button onclick="fetchLocation()">获取位置</button>
-<script>
-    var tipsEle = document.getElementById('tips')
+<button onclick="cancelFetchLocation()">取消获取位置</button>
+<button onclick="onAlert()">alert</button>
+<button onclick="onToast()">toast</button>
+<button onclick="onConfirm()">confirm</button>
+<div id="demo">
+    <p>  定位如下：</p>
+</div>
+
+
+<script type="text/javascript">
+    var map = new AMap.Map('container'), geolocation = null;
+    map.plugin('AMap.Geolocation', function () {
+        geolocation = new AMap.Geolocation({
+            enableHighAccuracy: true,//是否使用高精度定位，默认:true
+            timeout: 10000,          //超过10秒后停止定位，默认：无穷大
+            maximumAge: 0,           //定位结果缓存0毫秒，默认：0
+            convert: true,           //自动偏移坐标，偏移后的坐标为高德坐标，默认：true
+            showButton: true,        //显示定位按钮，默认：true
+            buttonPosition: 'LB',    //定位按钮停靠位置，默认：'LB'，左下角
+            buttonOffset: new AMap.Pixel(10, 20),//定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
+            showMarker: true,        //定位成功后在定位到的位置显示点标记，默认：true
+            showCircle: true,        //定位成功后用圆圈表示定位精度范围，默认：true
+            panToLocation: true,     //定位成功后将定位到的位置作为地图中心点，默认：true
+            zoomToAccuracy:true      //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
+        });
+        geolocation.getCurrentPosition();
+        AMap.event.addListener(geolocation, 'complete', onComplete);//返回定位信息
+        AMap.event.addListener(geolocation, 'error', onError);      //返回定位出错信息
+    });
+
+    var x = $("#demo");
+    var t1;
     function fetchLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError)
-        } else {
-            alert('当前设备不支持定位！')
-        }
+        t1 = setInterval(function() {
+            geolocation.getCurrentPosition();
+        }, 10 * 1000);
     }
-    function onGeoSuccess(event){
-        alert("Success: " + event.coords.latitude + ", " + event.coords.longitude)
+
+    function cancelFetchLocation() {
+        clearInterval(t1);
     }
-    function onGeoError(event){
-        alert("Error code " + event.code + ". " + event.message)
+
+    function onComplete(geolocationResult) {
+       console.log(geolocationResult);
+       x.append("<p>position:  " + geolocationResult.position + " </p>");
     }
+
+    function onError(geolocationError) {
+        console.log(geolocationError.info);
+        console.log(geolocationError.message);
+    }
+
+    function onAlert() {
+        alert('I am here !!!');
+    }
+
+    function onConfirm() {
+       confirm('I am here ?');
+    }
+
+    function onToast() {
+        android.showToast('nihao');
+    }
+
 </script>
+
+
+
 </body>
+</html>

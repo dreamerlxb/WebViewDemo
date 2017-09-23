@@ -68,9 +68,31 @@ public class MyMainActivity extends AppCompatActivity {
         loginWv.setWebChromeClient(new WebChromeClient() {
 
             @Override
-            public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-                callback.invoke(origin, true, true);
+            public void onGeolocationPermissionsShowPrompt(final String origin, final GeolocationPermissions.Callback callback) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MyMainActivity.this);
+                builder.setMessage("Allow to access location information?");
+                DialogInterface.OnClickListener dialogButtonOnClickListener = new DialogInterface.OnClickListener() {
+
+                    @Override
+                    public void onClick(DialogInterface dialog, int clickedButton) {
+                        if (DialogInterface.BUTTON_POSITIVE == clickedButton) {
+                            callback.invoke(origin, true, true);
+                        } else if (DialogInterface.BUTTON_NEGATIVE == clickedButton) {
+                            callback.invoke(origin, false, false);
+                        }
+                    }
+                };
+                builder.setPositiveButton("Allow", dialogButtonOnClickListener);
+                builder.setNegativeButton("Deny", dialogButtonOnClickListener);
+                builder.show();
                 super.onGeolocationPermissionsShowPrompt(origin, callback);
+                Log.i("test", "onGeolocationPermissionsShowPrompt");
+            }
+
+            @Override
+            public void onGeolocationPermissionsHidePrompt() {
+                super.onGeolocationPermissionsHidePrompt();
+                Log.i("test", "onGeolocationPermissionsHidePrompt");
             }
         });
 
