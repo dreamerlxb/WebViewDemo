@@ -14,13 +14,15 @@
        android:layout_marginRight="25dp"
        
        android:layout_gravity="center_horizontal"/>
-   <TextView android:id="@+id/Item_text"
-       android:layout_height="wrap_content"
+
+   <TextView
+       android:id="@+id/Item_text"
        android:layout_width="100dp"
-       android:textSize="11dp"
-       android:textColor="@android:color/background_dark"
+       android:layout_height="wrap_content"
+       android:layout_gravity="center_horizontal"
        android:gravity="center_horizontal"
-       android:layout_gravity="center_horizontal"/>
+       android:textColor="@android:color/background_dark"
+       android:textSize="11sp" />
     
 
 </LinearLayout>

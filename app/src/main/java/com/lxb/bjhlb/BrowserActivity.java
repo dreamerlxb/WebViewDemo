@@ -3,6 +3,7 @@ package com.lxb.bjhlb;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -12,8 +13,7 @@ import android.graphics.PixelFormat;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -36,6 +36,14 @@ import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
 import com.tencent.smtt.utils.TbsLog;
 
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnNeverAskAgain;
+import permissions.dispatcher.OnPermissionDenied;
+import permissions.dispatcher.OnShowRationale;
+import permissions.dispatcher.PermissionRequest;
+import permissions.dispatcher.RuntimePermissions;
+
+@RuntimePermissions
 public class BrowserActivity extends Activity {
     /**
      * 作为一个浏览器的示例展示出来，采用android+web的模式
@@ -44,7 +52,7 @@ public class BrowserActivity extends Activity {
     private ViewGroup mViewParent;
     private ValueCallback<Uri[]> uploadFiles;
 
-    private static final String mHomeUrl = "http://192.168.1.113:8080/sdrpoms/";//"file:///android_asset/location.html";
+    private static final String mHomeUrl = "file:///android_asset/location.html"; //"http://192.168.1.183:8080/sdzzhl/mobileIndex.jsp"; //"http://192.168.1.113:8080/sdrpoms/";//"file:///android_asset/location.html";
     private static final String TAG = "SdkDemo";
     private boolean mNeedTestPage = false;
 
@@ -52,11 +60,13 @@ public class BrowserActivity extends Activity {
 
     private URL mIntentUrl;
 
+    private LocationJs locationJs;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFormat(PixelFormat.TRANSLUCENT);
-
+        locationJs = new LocationJs(this);
         Intent intent = getIntent();
         if (intent != null) {
             try {
@@ -71,7 +81,8 @@ public class BrowserActivity extends Activity {
         //
         try {
             if (Integer.parseInt(android.os.Build.VERSION.SDK) >= 11) {
-                getWindow().setFlags(
+                getWindow()
+                        .setFlags(
                                 android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                                 android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
             }
@@ -84,36 +95,30 @@ public class BrowserActivity extends Activity {
 		 */
         setContentView(R.layout.activity_main);
         mViewParent = (ViewGroup) findViewById(R.id.webView1);
-
-        mTestHandler.sendEmptyMessageDelayed(MSG_INIT_UI, 10);
+        init();
     }
 
     private void init() {
-
         mWebView = new X5WebView(this, null);
-
         mViewParent.addView(mWebView, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
-
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Log.i("X5WebView", url);
                 return false;
             }
-
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 Log.i("X5WebView", url);
-                mTestHandler.sendEmptyMessageDelayed(MSG_OPEN_TEST_URL, 5000);// 5s?
                 if (Integer.parseInt(android.os.Build.VERSION.SDK) >= 16) {
-//					changGoForwardButton(view);
                 }
             }
         });
 
-        mWebView.setWebChromeClient(new WebChromeClient() {
+        locationJs.setWebView(mWebView);
 
+        mWebView.setWebChromeClient(new WebChromeClient() {
             // For Android 3.0+
             public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType) {
                 Log.i("test", "openFileChooser 1");
@@ -136,10 +141,8 @@ public class BrowserActivity extends Activity {
             }
 
             // For Android  >= 5.0
-            public boolean onShowFileChooser(com.tencent.smtt.sdk.WebView webView,
-                                             ValueCallback<Uri[]> filePathCallback,
-                                             WebChromeClient.FileChooserParams fileChooserParams) {
-                Log.i("test", "openFileChooser 4:" + filePathCallback.toString());
+            public boolean onShowFileChooser(com.tencent.smtt.sdk.WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+                Log.i("TestLocation", "openFileChooser 4:" + filePathCallback.toString());
                 BrowserActivity.this.uploadFiles = filePathCallback;
                 openFileChooseProcess();
                 return true;
@@ -164,14 +167,14 @@ public class BrowserActivity extends Activity {
                 builder.setPositiveButton("允许", dialogButtonOnClickListener);
                 builder.setNegativeButton("拒绝", dialogButtonOnClickListener);
                 builder.show();
+                Log.i("TestLocation", "onGeolocationPermissionsShowPrompt");
                 super.onGeolocationPermissionsShowPrompt(s, callback);
-                Log.i("test", "onGeolocationPermissionsShowPrompt");
             }
 
             @Override
             public void onGeolocationPermissionsHidePrompt() {
                 super.onGeolocationPermissionsHidePrompt();
-                Log.i("test", "onGeolocationPermissionsHidePrompt");
+                Log.i("TestLocation", "onGeolocationPermissionsHidePrompt");
             }
 
             @Override
@@ -224,8 +227,7 @@ public class BrowserActivity extends Activity {
              * 全屏播放配置
              */
             @Override
-            public void onShowCustomView(View view,
-                                         CustomViewCallback customViewCallback) {
+            public void onShowCustomView(View view, CustomViewCallback customViewCallback) {
                 FrameLayout normalView = (FrameLayout) findViewById(R.id.web_filechooser);
                 ViewGroup viewGroup = (ViewGroup) normalView.getParent();
                 viewGroup.removeView(normalView);
@@ -250,46 +252,30 @@ public class BrowserActivity extends Activity {
         });
 
         mWebView.setDownloadListener(new DownloadListener() {
-
             @Override
-            public void onDownloadStart(String arg0, String arg1, String arg2,
-                                        String arg3, long arg4) {
+            public void onDownloadStart(String arg0, String arg1, String arg2, String arg3, long arg4) {
                 TbsLog.d(TAG, "url: " + arg0);
                 new AlertDialog.Builder(BrowserActivity.this)
-                        .setTitle("allow to download？")
+                        .setTitle("是否允许下载？")
                         .setPositiveButton("yes",
                                 new DialogInterface.OnClickListener() {
                                     @Override
-                                    public void onClick(DialogInterface dialog,
-                                                        int which) {
-                                        Toast.makeText(
-                                                BrowserActivity.this,
-                                                "fake message: i'll download...", Toast.LENGTH_SHORT).show();
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Toast.makeText(BrowserActivity.this,"fake message: i'll download...", Toast.LENGTH_SHORT).show();
                                     }
                                 })
                         .setNegativeButton("no",
                                 new DialogInterface.OnClickListener() {
-
                                     @Override
-                                    public void onClick(DialogInterface dialog,
-                                                        int which) {
-                                        // TODO Auto-generated method stub
-                                        Toast.makeText(
-                                                BrowserActivity.this,
-                                                "fake message: refuse download...",
-                                                Toast.LENGTH_SHORT).show();
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Toast.makeText(BrowserActivity.this,"fake message: refuse download...", Toast.LENGTH_SHORT).show();
                                     }
                                 })
                         .setOnCancelListener(
                                 new DialogInterface.OnCancelListener() {
-
                                     @Override
                                     public void onCancel(DialogInterface dialog) {
-                                        // TODO Auto-generated method stub
-                                        Toast.makeText(
-                                                BrowserActivity.this,
-                                                "fake message: refuse download...",
-                                                Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(BrowserActivity.this,"fake message: refuse download...", Toast.LENGTH_SHORT).show();
                                     }
                                 }).show();
             }
@@ -311,12 +297,14 @@ public class BrowserActivity extends Activity {
         webSetting.setAppCacheMaxSize(Long.MAX_VALUE);
         webSetting.setAppCachePath(this.getDir("appcache", 0).getPath());
         webSetting.setDatabasePath(this.getDir("databases", 0).getPath());
-        webSetting.setGeolocationDatabasePath(this.getDir("geolocation", 0).getPath());
+        webSetting.setGeolocationDatabasePath(this.getDir("geolocation", Context.MODE_PRIVATE).getPath());
         // webSetting.setPageCacheCapacity(IX5WebSettings.DEFAULT_CACHE_CAPACITY);
         webSetting.setPluginState(WebSettings.PluginState.ON_DEMAND);
 
-// js 调用 Android
+// js 调用 Android 方法
         mWebView.addJavascriptInterface(new ToastJs(this), "android");
+        mWebView.addJavascriptInterface(locationJs, "myLocation");
+
         testGeolocationOK();
         long time = System.currentTimeMillis();
         if (mIntentUrl == null) {
@@ -346,13 +334,9 @@ public class BrowserActivity extends Activity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (mWebView != null && mWebView.canGoBack()) {
                 mWebView.goBack();
-                if (Integer.parseInt(android.os.Build.VERSION.SDK) >= 16) {
-//					changGoForwardButton(mWebView);
-                }
                 return true;
             } else
                 return super.onKeyDown(keyCode, event);
@@ -364,40 +348,16 @@ public class BrowserActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         TbsLog.d(TAG, "onActivityResult, requestCode:" + requestCode + ",resultCode:" + resultCode);
 
-//        if (resultCode == RESULT_OK) {
-//            switch (requestCode) {
-//                case 0:
-//                    if (null != uploadFile) {
-//                        Uri result = data == null || resultCode != RESULT_OK ? null
-//                                : data.getData();
-//                        uploadFile.onReceiveValue(result);
-//                        uploadFile = null;
-//                    }
-//                    break;
-//                default:
-//                    break;
-//            }
-//        } else if (resultCode == RESULT_CANCELED) {
-//            if (null != uploadFile) {
-//                uploadFile.onReceiveValue(null);
-//                uploadFile = null;
-//            }
-//        }
-
-
-
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case 0:
                     if (null != uploadFile) {
-                        Uri result = data == null || resultCode != RESULT_OK ? null
-                                : data.getData();
+                        Uri result = data == null || resultCode != RESULT_OK ? null : data.getData();
                         uploadFile.onReceiveValue(result);
                         uploadFile = null;
                     }
                     if (null != uploadFiles) {
-                        Uri result = data == null || resultCode != RESULT_OK ? null
-                                : data.getData();
+                        Uri result = data == null || resultCode != RESULT_OK ? null : data.getData();
                         uploadFiles.onReceiveValue(new Uri[]{result});
                         uploadFiles = null;
                     }
@@ -422,39 +382,45 @@ public class BrowserActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        if (mTestHandler != null)
-            mTestHandler.removeCallbacksAndMessages(null);
         if (mWebView != null)
             mWebView.destroy();
         super.onDestroy();
     }
 
-    public static final int MSG_OPEN_TEST_URL = 0;
-    public static final int MSG_INIT_UI = 1;
-    private final int mUrlStartNum = 0;
-    private int mCurrentUrl = mUrlStartNum;
-    private Handler mTestHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MSG_OPEN_TEST_URL:
-                    if (!mNeedTestPage) {
-                        return;
+    @NeedsPermission({Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
+    void needsPermission() {
+        Toast.makeText(this, "已经获取定位权限", Toast.LENGTH_SHORT).show();
+        locationJs.onPermissionGranted();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        BrowserActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+    }
+
+    @OnShowRationale({Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
+    void showRationale(final PermissionRequest request) {
+        new AlertDialog.Builder(this)
+                .setMessage("申请相机权限")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // 再次执行请求
+                        request.proceed();
                     }
+                })
+                .show();
+    }
 
-                    String testUrl = "file:///sdcard/outputHtml/html/" + Integer.toString(mCurrentUrl) + ".html";
-                    if (mWebView != null) {
-                        mWebView.loadUrl(testUrl);
-                    }
+    @OnPermissionDenied({Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
+    void deniedPermission() {
+        Toast.makeText(this, "权限被拒绝", Toast.LENGTH_SHORT).show();
+        locationJs.onPermissionDenied();
+    }
 
-                    mCurrentUrl++;
-                    break;
-                case MSG_INIT_UI:
-                    init();
-                    break;
-            }
-            super.handleMessage(msg);
-        }
-    };
-
+    @OnNeverAskAgain({Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
+    void neverAskAgain() {
+        Toast.makeText(this, "不再询问", Toast.LENGTH_SHORT).show();
+    }
 }

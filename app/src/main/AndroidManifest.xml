@@ -10,7 +10,6 @@
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -35,11 +34,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <activity android:name=".MyMainActivity">
-
-        </activity>
-
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="61bf14373b9a642495576b0604b173f6"/>
+        <service android:name="com.amap.api.location.APSService"></service>
         <activity
             android:name=".FullScreenActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
@@ -71,10 +69,5 @@
             </intent-filter>
         </activity>
 
-
-        <activity
-            android:name=".LoginActivity"
-            android:label="@string/title_activity_login">
-        </activity>
     </application>
 </manifest>
