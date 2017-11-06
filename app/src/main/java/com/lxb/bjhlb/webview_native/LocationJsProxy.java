@@ -1,4 +1,4 @@
-package com.lxb.bjhlb;
+package com.lxb.bjhlb.webview_native;
 
 import android.app.Activity;
 import android.webkit.JavascriptInterface;

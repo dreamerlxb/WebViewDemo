@@ -14,6 +14,8 @@ import com.tencent.smtt.sdk.ValueCallback;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.logging.Logger;
+
 /**
  * Created by lion on 2017/9/23.
  */
@@ -64,7 +66,6 @@ public class LocationJs implements AMapLocationListener, PermissionsResultListen
 //// 在定位结束后，在合适的生命周期调用onDestroy()方法
     }
 
-
     public void onDestroy() {
         if(mLocationClient != null) {
             mLocationClient.onDestroy();
@@ -78,19 +79,12 @@ public class LocationJs implements AMapLocationListener, PermissionsResultListen
             if (aMapLocation.getErrorCode() == 0) {
                 // 定位成功回调信息，设置相关消息
                 JSONObject jo = aMapLocation.toJson(1);
-                JSONObject lngLat = new JSONObject();
-                try {
-                    lngLat.put("lat", aMapLocation.getLatitude());
-                    lngLat.put("lon", aMapLocation.getLongitude());
-                    jo.put("lngLat", lngLat);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
                 if (mWebView != null) {
 //                    mWebView.loadUrl("javascript:showFromHtml('" + ss + "')");
                     mWebView.evaluateJavascript("onLocationComplete('" + jo.toString() + "')", new ValueCallback<String>() {
                         @Override
                         public void onReceiveValue(String s) {
+                            Log.e("返回值", s);
                             if (s != null && !Boolean.valueOf(s)) {
                                 mLocationClient.stopLocation();
                             }
