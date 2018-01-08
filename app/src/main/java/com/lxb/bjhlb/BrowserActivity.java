@@ -52,7 +52,9 @@ public class BrowserActivity extends Activity {
     private ViewGroup mViewParent;
     private ValueCallback<Uri[]> uploadFiles;
     //"file:///android_asset/location.html";
-    private static final String mHomeUrl = "http://192.168.1.189:8080/sdrpoms/mobileIndex.jsp"; //"http://192.168.1.113:8080/sdrpoms/";//"file:///android_asset/location.html";
+    // "http://192.168.1.120:8080/sdrpoms/mobileIndex.jsp";
+    // "http://192.168.1.113:8080/sdrpoms/";
+    private static final String mHomeUrl = "http://58.56.96.170:8009/sdrpoms";// "file:///android_asset/location.html";
     private static final String TAG = "X5WebView";
     public static final int RESULT_CODE = 1000;
     public static final int REQUEST_CODE = 1003;
