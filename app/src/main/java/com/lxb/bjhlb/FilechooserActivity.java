@@ -44,6 +44,7 @@ public class FilechooserActivity extends Activity {
             }
 
             // For Android  > 4.1.1
+            @Override
             public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
                 Log.i("test", "openFileChooser 3");
                 FilechooserActivity.this.uploadFile = uploadFile;
@@ -51,6 +52,7 @@ public class FilechooserActivity extends Activity {
             }
 
             // For Android  >= 5.0
+            @Override
             public boolean onShowFileChooser(com.tencent.smtt.sdk.WebView webView,
                                              ValueCallback<Uri[]> filePathCallback,
                                              WebChromeClient.FileChooserParams fileChooserParams) {

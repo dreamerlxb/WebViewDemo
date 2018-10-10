@@ -119,6 +119,8 @@ public class MainActivity extends Activity {
 
                         }
                         break;
+                    default:
+                        break;
 
                     }
 
@@ -144,6 +146,8 @@ public class MainActivity extends Activity {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
                 this.tbsSuiteExit();
+            default:
+                break;
         }
         return super.onKeyDown(keyCode, event);
     }

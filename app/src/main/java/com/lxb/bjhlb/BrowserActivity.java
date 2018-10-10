@@ -76,8 +76,6 @@ public class BrowserActivity extends Activity {
                 mIntentUrl = new URL(intent.getData().toString());
             } catch (MalformedURLException e) {
                 e.printStackTrace();
-            } catch (NullPointerException e) {
-
             } catch (Exception e) {
             }
         }
@@ -137,6 +135,7 @@ public class BrowserActivity extends Activity {
             }
 
             // For Android  > 4.1.1
+            @Override
             public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
                 Log.i("test", "openFileChooser 3");
                 BrowserActivity.this.uploadFile = uploadFile;
@@ -144,6 +143,7 @@ public class BrowserActivity extends Activity {
             }
 
             // For Android  >= 5.0
+            @Override
             public boolean onShowFileChooser(com.tencent.smtt.sdk.WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
                 Log.i("TestLocation", "openFileChooser 4:" + filePathCallback.toString());
                 BrowserActivity.this.uploadFiles = filePathCallback;
@@ -329,8 +329,9 @@ public class BrowserActivity extends Activity {
             if (mWebView != null && mWebView.canGoBack()) {
                 mWebView.goBack();
                 return true;
-            } else
+            } else {
                 return super.onKeyDown(keyCode, event);
+            }
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -389,11 +390,13 @@ public class BrowserActivity extends Activity {
         locationJs.onPermissionGranted();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        BrowserActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+////        BrowserActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+//    }
+
+
 
     @OnShowRationale({Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION})
     void showRationale(final PermissionRequest request) {
